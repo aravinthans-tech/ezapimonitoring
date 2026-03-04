@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "API Monitoring Dashboard for Application Insights",
   "scripts": {
-    "build": "echo 'No build step required for static site'"
+    "build": "node build-config.js"
   },
   "keywords": [
     "api-monitoring",

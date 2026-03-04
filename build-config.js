@@ -1,4 +1,33 @@
-// Application Insights Configuration
+const fs = require('fs');
+const path = require('path');
+
+// Read environment variables with fallbacks
+const config = {
+    trial: {
+        applicationId: process.env.TRIAL_APP_INSIGHTS_APP_ID || 'YOUR_APPLICATION_ID_HERE',
+        apiKey: process.env.TRIAL_APP_INSIGHTS_API_KEY || 'YOUR_API_KEY_HERE',
+        queryApiUrl: 'https://api.applicationinsights.io/v1/apps/{appId}/query',
+        name: 'Trial'
+    },
+    live: {
+        applicationId: process.env.LIVE_APP_INSIGHTS_APP_ID || 'YOUR_LIVE_APPLICATION_ID',
+        apiKey: process.env.LIVE_APP_INSIGHTS_API_KEY || 'YOUR_LIVE_API_KEY',
+        queryApiUrl: 'https://api.applicationinsights.io/v1/apps/{appId}/query',
+        name: 'Live'
+    },
+    refreshInterval: parseInt(process.env.REFRESH_INTERVAL) || 300000,
+    currentEnvironment: process.env.APP_INSIGHTS_ENVIRONMENT || 'trial'
+};
+
+const onPremiseConfig = {
+    elasticsearchUrl: process.env.ELASTICSEARCH_URL || 'http://localhost:9200',
+    indexName: process.env.ELASTICSEARCH_INDEX || 'api-monitoring',
+    currentCustomer: null,
+    refreshInterval: parseInt(process.env.REFRESH_INTERVAL) || 300000
+};
+
+// Generate config.js from environment variables
+const configJs = `// Application Insights Configuration
 // Support for both Trial and Live environments
 // This file is auto-generated during build. Do not edit manually.
 
@@ -6,53 +35,53 @@ const APP_INSIGHTS_CONFIG = {
     // Trial Environment Configuration (Current)
     trial: {
         // Application Insights Application ID
-        applicationId: 'YOUR_APPLICATION_ID_HERE',
+        applicationId: '${config.trial.applicationId}',
         
         // Application Insights API Key
-        apiKey: 'YOUR_API_KEY_HERE',
+        apiKey: '${config.trial.apiKey}',
         
         // Application Insights Query API endpoint
         queryApiUrl: 'https://api.applicationinsights.io/v1/apps/{appId}/query',
         
         // Environment name
-        name: 'Trial'
+        name: '${config.trial.name}'
     },
     
     // Live Environment Configuration (To be configured)
     live: {
         // Application Insights Application ID
-        applicationId: 'YOUR_LIVE_APPLICATION_ID',
+        applicationId: '${config.live.applicationId}',
         
         // Application Insights API Key
-        apiKey: 'YOUR_LIVE_API_KEY',
+        apiKey: '${config.live.apiKey}',
         
         // Application Insights Query API endpoint
         queryApiUrl: 'https://api.applicationinsights.io/v1/apps/{appId}/query',
         
         // Environment name
-        name: 'Live'
+        name: '${config.live.name}'
     },
     
     // Auto-refresh interval in milliseconds (5 minutes = 300000)
-    refreshInterval: 300000,
+    refreshInterval: ${config.refreshInterval},
     
     // Current environment: 'trial' or 'live'
-    currentEnvironment: 'trial'
+    currentEnvironment: '${config.currentEnvironment}'
 };
 
 // On-Premise Configuration
 const ON_PREMISE_CONFIG = {
     // Elasticsearch URL (direct connection)
-    elasticsearchUrl: 'http://localhost:9200',
+    elasticsearchUrl: '${onPremiseConfig.elasticsearchUrl}',
     
     // Elasticsearch index name
-    indexName: 'api-monitoring',
+    indexName: '${onPremiseConfig.indexName}',
     
     // Current customer name (used for identification/filtering)
     currentCustomer: null,
     
     // Auto-refresh interval in milliseconds (5 minutes = 300000)
-    refreshInterval: 300000
+    refreshInterval: ${onPremiseConfig.refreshInterval}
 };
 
 // Tenant Configuration
@@ -92,7 +121,7 @@ let CURRENT_TENANT_ID = null;
 
 // Helper function to get tenant name by ID
 function getTenantName(tenantId) {
-    return TENANT_DATA[tenantId]?.name || `Tenant ${tenantId}`;
+    return TENANT_DATA[tenantId]?.name || \`Tenant \${tenantId}\`;
 }
 
 // Helper function to get tenant email by ID
@@ -216,3 +245,9 @@ function loadSavedConfig() {
 
 // Initialize on load
 loadSavedConfig();
+`;
+
+// Write the generated config.js
+fs.writeFileSync(path.join(__dirname, 'config.js'), configJs, 'utf8');
+console.log('✅ config.js generated successfully from environment variables');
+

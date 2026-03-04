@@ -29,6 +29,6 @@ Thumbs.db
 *.pyc
 __pycache__/
 
-# Optional: Uncomment if you don't want to commit config.js with API keys
-# config.js
+# Generated config file (contains secrets)
+config.js
 
