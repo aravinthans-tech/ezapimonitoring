@@ -1,0 +1,1032 @@
+================================================================================
+                    API MONITORING DASHBOARD
+                    PRESENTATION GUIDE
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. Warm Welcome & Introduction
+2. Overview of the Application
+3. Architecture & Technology Stack
+4. Data Flow & Process
+5. Technical Components
+6. KQL (Kusto Query Language) Overview
+7. User Interface & Design
+8. Features & Functionality
+9. Filtering & Search Capabilities
+10. Demo Mode
+11. Deployment Options
+12. Security Considerations
+13. Benefits & Use Cases
+14. Performance & Speed
+15. Presentation Tips
+16. Q&A Preparation
+
+================================================================================
+1. WARM WELCOME & INTRODUCTION
+================================================================================
+
+OPENING STATEMENT:
+-----------------
+"Good morning/afternoon everyone, and a very warm welcome! Thank you for taking 
+the time to join me today. I'm delighted to have this opportunity to share with 
+you something I'm really excited about—our API Monitoring Dashboard. This 
+solution has transformed how we monitor and understand our application's 
+performance, and I'm thrilled to walk you through it."
+
+PRESENTATION TOPIC:
+------------------
+Today, I'll be presenting our API Monitoring Dashboard—a custom-built solution 
+that provides real-time visibility into our application's performance, health, 
+and usage patterns.
+
+AGENDA:
+-------
+• What the dashboard is and why we built it
+• How it works technically
+• Key features and capabilities
+• Live demonstration
+• Benefits and impact
+
+================================================================================
+2. OVERVIEW OF THE APPLICATION
+================================================================================
+
+WHAT IS IT?
+-----------
+A professional, real-time monitoring dashboard for Azure Application Insights 
+data. It provides comprehensive visibility into API performance, health, and 
+usage without needing to navigate the Azure Portal.
+
+PURPOSE:
+--------
+• Monitor API performance in real-time
+• Track errors and exceptions
+• Analyze endpoint usage patterns
+• Identify performance bottlenecks
+• Provide a clean, professional interface for stakeholders
+
+KEY CHARACTERISTICS:
+--------------------
+• Pure frontend solution (no backend server required)
+• Real-time data from Azure Application Insights
+• Professional, modern UI
+• Easy to deploy and use
+• Cost-effective monitoring solution
+
+================================================================================
+3. ARCHITECTURE & TECHNOLOGY STACK
+================================================================================
+
+FRONTEND TECHNOLOGIES:
+----------------------
+┌─────────────────────────────────────────────────────────────┐
+│ HTML5              │ Structure and layout                    │
+│ Tailwind CSS       │ Modern, utility-first styling           │
+│ JavaScript (ES6+)  │ Core logic and data processing         │
+│ Chart.js           │ Interactive charts and visualizations  │
+│ Moment.js          │ Date/time formatting                   │
+│ Font Awesome       │ Icons and visual elements               │
+└─────────────────────────────────────────────────────────────┘
+
+BACKEND INTEGRATION:
+--------------------
+┌─────────────────────────────────────────────────────────────┐
+│ Azure Application Insights REST API                          │
+│ Kusto Query Language (KQL)                                   │
+│ RESTful API calls for data fetching                          │
+└─────────────────────────────────────────────────────────────┘
+
+ARCHITECTURE PATTERN:
+---------------------
+┌─────────────────────────────────────────────────────────────┐
+│                    PURE FRONTEND ARCHITECTURE                │
+│                                                               │
+│  ┌──────────────┐         ┌──────────────┐                   │
+│  │   Browser    │────────▶│  Dashboard   │                   │
+│  │              │         │   (HTML/JS)  │                   │
+│  └──────────────┘         └──────┬───────┘                   │
+│                                   │                           │
+│                                   │ REST API                  │
+│                                   ▼                           │
+│                          ┌─────────────────┐                 │
+│                          │ Azure App       │                 │
+│                          │ Insights        │                 │
+│                          └─────────────────┘                 │
+└─────────────────────────────────────────────────────────────┘
+
+NO BACKEND SERVER REQUIRED:
+---------------------------
+• Static HTML/CSS/JavaScript files
+• Direct API calls from browser
+• No server-side processing
+• Easy deployment anywhere
+
+================================================================================
+4. DATA FLOW & PROCESS
+================================================================================
+
+DATA FLOW DIAGRAM:
+------------------
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                       │
+│  Azure Application Insights                                          │
+│         │                                                             │
+│         │ Telemetry Data (Requests, Exceptions, Traces)               │
+│         │                                                             │
+│         ▼                                                             │
+│  Application Insights REST API                                       │
+│         │                                                             │
+│         │ KQL Queries                                                │
+│         │                                                             │
+│         ▼                                                             │
+│  Dashboard JavaScript                                                │
+│         │                                                             │
+│         │ Data Processing & Transformation                           │
+│         │                                                             │
+│         ▼                                                             │
+│  Visualization (Charts, Tables, Metrics)                             │
+│                                                                       │
+└─────────────────────────────────────────────────────────────────────┘
+
+STEP-BY-STEP PROCESS:
+---------------------
+
+STEP 1: CONFIGURATION
+─────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ config.js contains:                                          │
+│ • Application ID: 7c0154d5-8cec-4d11-b94d-bb10295b9436      │
+│ • API Key: Authentication credentials                       │
+│ • Query API URL: REST endpoint                              │
+│ • Refresh Interval: 5 minutes (300000ms)                   │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 2: DATA FETCHING
+─────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ JavaScript builds KQL queries:                              │
+│                                                              │
+│ requests | where timestamp >= datetime("...")              │
+│          | summarize count()                                │
+│                                                              │
+│ Queries sent in parallel for efficiency                    │
+│ Error handling for failed requests                         │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 3: DATA PROCESSING
+───────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ Transform API responses:                                    │
+│ • Format timestamps (MMM DD, YYYY HH:mm:ss)                │
+│ • Format durations (ms, s, min)                             │
+│ • Format numbers (1,234,567)                                │
+│ • Calculate percentages                                      │
+│ • Prepare data for visualization                            │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 4: VISUALIZATION
+─────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ Update UI components:                                       │
+│ • Metric cards (Total Requests, Avg Response Time, etc.)  │
+│ • Charts (Request Volume, Status Codes, Response Time)    │
+│ • Tables (Recent Requests, Exceptions, Endpoints)          │
+│ • Timestamps (Last Updated)                                 │
+└─────────────────────────────────────────────────────────────┘
+
+STEP 5: AUTO-REFRESH
+────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ Timer-based refresh:                                        │
+│ • Every 5 minutes automatically                            │
+│ • Manual refresh button available                           │
+│ • Loading indicators during refresh                        │
+│ • Error notifications if refresh fails                       │
+└─────────────────────────────────────────────────────────────┘
+
+================================================================================
+5. TECHNICAL COMPONENTS
+================================================================================
+
+A. CONFIGURATION (config.js)
+────────────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ const APP_INSIGHTS_CONFIG = {                              │
+│     applicationId: '7c0154d5-8cec-4d11-b94d-bb10295b9436',│
+│     apiKey: 'su40571zh7m25yt2exnri8tf6zzpu2rutoxbaasy',    │
+│     queryApiUrl: 'https://api.applicationinsights.io/...', │
+│     refreshInterval: 300000  // 5 minutes                 │
+│ };                                                          │
+└─────────────────────────────────────────────────────────────┘
+
+B. CORE FUNCTIONS (dashboard.js)
+─────────────────────────────────
+
+1. executeQuery(query)
+   ───────────────────
+   • Sends KQL query to Application Insights REST API
+   • Handles authentication with API Key
+   • Returns JSON response with data tables
+   • Error handling for failed requests
+
+2. refreshData()
+   ──────────────
+   • Fetches all metrics, charts, and table data
+   • Executes multiple queries in parallel
+   • Updates all UI components
+   • Handles demo mode
+
+3. updateMetricCards()
+   ────────────────────
+   • Updates key metrics display:
+     - Total Requests
+     - Average Response Time
+     - Success Rate
+     - Error Count
+
+4. updateCharts()
+   ───────────────
+   • Renders/updates Chart.js visualizations:
+     - Request Volume Over Time (Line Chart)
+     - Status Code Breakdown (Doughnut Chart)
+     - Response Time Distribution (Line Chart)
+     - Top 10 Endpoints (Bar Chart)
+
+5. updateTables()
+   ───────────────
+   • Populates data tables:
+     - Recent Requests
+     - Recent Exceptions
+     - Slowest Endpoints
+     - Most Used Endpoints
+
+6. refreshLogsOnly()
+   ──────────────────
+   • Refreshes logs table with time filters
+   • Applies custom date/time ranges
+   • Shows loading indicators
+
+7. filterTablesByEndpoint()
+   ──────────────────────────
+   • Real-time search across tables
+   • Filters by endpoint name
+   • Updates all relevant tables
+
+8. showPage()
+   ───────────
+   • Handles page navigation
+   • Shows/hides page content
+   • Updates active navigation state
+
+C. KQL QUERIES USED
+───────────────────
+
+┌─────────────────────────────────────────────────────────────┐
+│ QUERY TYPE              │ KQL QUERY                        │
+├─────────────────────────────────────────────────────────────┤
+│ Total Requests          │ requests | summarize count()     │
+│ Average Response Time   │ requests | summarize avg(...)    │
+│ Error Count             │ requests | where success==false │
+│ Request Trends          │ requests | summarize count()     │
+│                         │   by bin(timestamp, 1h)         │
+│ Status Codes            │ requests | summarize count()    │
+│                         │   by resultCode                  │
+│ Top Endpoints           │ requests | summarize count()     │
+│                         │   by name | top 10               │
+│ Slowest Endpoints       │ requests | summarize avg(...)    │
+│                         │   by name                        │
+│ Most Used Endpoints     │ requests | summarize totalCount  │
+│                         │   = count(), successCount = ...  │
+└─────────────────────────────────────────────────────────────┘
+
+================================================================================
+6. KQL (KUSTO QUERY LANGUAGE) OVERVIEW
+================================================================================
+
+WHAT IS KQL?
+────────────
+KQL (Kusto Query Language) is a query language used to query large datasets 
+in Azure services like Application Insights, Azure Data Explorer, and Log 
+Analytics. It's similar to SQL but optimized for time-series and log data.
+
+KEY DIFFERENCES FROM SQL:
+─────────────────────────
+
+┌─────────────────────────────────────────────────────────────┐
+│ ASPECT              │ SQL              │ KQL               │
+├─────────────────────────────────────────────────────────────┤
+│ Syntax Style        │ Declarative      │ Pipeline-based    │
+│ Reading Direction   │ Top to bottom    │ Left to right     │
+│ Table Name          │ After FROM       │ First (no FROM)   │
+│ Filter              │ WHERE            │ | where           │
+│ Select Columns      │ SELECT           │ | project         │
+│ Aggregate           │ GROUP BY         │ | summarize       │
+│ Sort                │ ORDER BY         │ | order by        │
+│ Limit               │ LIMIT/TOP        │ | top/take        │
+└─────────────────────────────────────────────────────────────┘
+
+KQL SYNTAX BASICS:
+──────────────────
+
+1. DATA SOURCE (Table Name First)
+   ───────────────────────────────
+   requests          // Gets all request data
+   exceptions        // Gets all exception data
+   traces            // Gets all trace data
+
+2. FILTER (where)
+   ───────────────
+   requests | where timestamp >= datetime("2024-01-12T00:00:00Z")
+   requests | where success == false
+   requests | where resultCode == 200
+
+3. PROJECT (Select Columns)
+   ────────────────────────
+   requests | project timestamp, name, resultCode, duration
+
+4. SUMMARIZE (Aggregate)
+   ─────────────────────
+   requests | summarize count()
+   requests | summarize avg(duration)
+   requests | summarize count() by name
+
+5. ORDER/SORT
+   ──────────
+   requests | order by timestamp desc
+   requests | order by duration desc
+
+6. TOP/LIMIT
+   ──────────
+   requests | top 10 by timestamp desc
+   requests | take 10
+
+APPLICATION INSIGHTS TABLES:
+────────────────────────────
+
+┌─────────────────────────────────────────────────────────────┐
+│ TABLE NAME        │ CONTAINS                                │
+├─────────────────────────────────────────────────────────────┤
+│ requests          │ HTTP requests to your API                │
+│ exceptions        │ Exceptions and errors                    │
+│ traces            │ Custom trace logs                       │
+│ dependencies      │ External service calls                   │
+│ pageViews         │ Web page views                          │
+│ customEvents      │ Custom events                           │
+│ customMetrics     │ Custom metrics                           │
+└─────────────────────────────────────────────────────────────┘
+
+KQL EXAMPLES FROM DASHBOARD:
+─────────────────────────────
+
+Example 1: Total Requests
+──────────────────────────
+requests | where timestamp >= datetime("2024-01-12T00:00:00Z") 
+        | summarize count()
+
+Example 2: Average Response Time
+─────────────────────────────────
+requests | where timestamp >= datetime("2024-01-12T00:00:00Z") 
+        | summarize avg(duration)
+
+Example 3: Error Count
+───────────────────────
+requests | where timestamp >= datetime("2024-01-12T00:00:00Z") 
+        and success == false 
+        | summarize count()
+
+Example 4: Request Trends (Hourly)
+──────────────────────────────────
+requests | where timestamp >= datetime("2024-01-12T00:00:00Z") 
+        | summarize count() by bin(timestamp, 1h) 
+        | order by timestamp asc
+
+Example 5: Status Code Breakdown
+─────────────────────────────────
+requests | where timestamp >= datetime("2024-01-12T00:00:00Z") 
+        | summarize count() by resultCode 
+        | order by count_ desc
+
+Example 6: Top 10 Endpoints
+─────────────────────────────
+requests | where timestamp >= datetime("2024-01-12T00:00:00Z") 
+        | summarize count() by name 
+        | top 10 by count_ desc
+
+Example 7: Slowest Endpoints
+─────────────────────────────
+requests | where timestamp >= datetime("2024-01-12T00:00:00Z") 
+        | summarize avg(duration), count() by name 
+        | where count_ > 10 
+        | top 10 by avg_duration desc
+
+Example 8: Most Used Endpoints with Success Rate
+──────────────────────────────────────────────────
+requests | where timestamp >= datetime("2024-01-12T00:00:00Z") 
+        | summarize totalCount = count(), 
+                   successCount = countif(success == true) by name 
+        | extend successRate = (successCount * 100.0 / totalCount) 
+        | top 10 by totalCount desc
+
+WHY KQL FOR APPLICATION INSIGHTS?
+──────────────────────────────────
+1. Optimized for time-series and log data
+2. Fast queries on large datasets
+3. Built-in time functions (bin(), ago(), now())
+4. Native support in Azure services
+5. Readable pipeline-style syntax
+
+KQL PERFORMANCE:
+─────────────────
+• Columnar storage: Data stored in columns for fast aggregations
+• Parallel processing: Queries run across multiple nodes
+• Time-series optimization: Built-in time functions are highly optimized
+• Azure infrastructure: Runs on high-performance distributed systems
+• Typical query time: 1-5 seconds even with millions of records
+
+TIPS FOR WRITING KQL QUERIES:
+──────────────────────────────
+1. Always filter by time first to reduce data
+2. Use summarize for aggregations
+3. Use bin() for time-based grouping
+4. Use top instead of take when sorting
+5. Use project to limit columns
+6. Chain operations with |
+
+================================================================================
+7. USER INTERFACE & DESIGN
+================================================================================
+
+DESIGN PRINCIPLES:
+──────────────────
+• Clean, minimal design
+• Light color scheme
+• Compact layout
+• Professional appearance
+• Responsive across devices
+
+NAVIGATION STRUCTURE:
+─────────────────────
+
+┌─────────────────────────────────────────────────────────────┐
+│                    SIDEBAR NAVIGATION                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌────────────────────┐                                     │
+│  │  [Logo] API        │                                     │
+│  │     MONITORING     │                                     │
+│  └────────────────────┘                                     │
+│                                                              │
+│  ┌────────────────────┐                                     │
+│  │ 📊 Overview       │  ← Active Page                      │
+│  └────────────────────┘                                     │
+│  ┌────────────────────┐                                     │
+│  │ 📋 Endpoints       │                                     │
+│  └────────────────────┘                                     │
+│  ┌────────────────────┐                                     │
+│  │ 📝 Logs            │                                     │
+│  └────────────────────┘                                     │
+│                                                              │
+│  ┌────────────────────┐                                     │
+│  │ 🕐 Last Updated    │                                     │
+│  │    [Refresh]      │                                     │
+│  └────────────────────┘                                     │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+
+THREE MAIN PAGES:
+─────────────────
+
+1. OVERVIEW PAGE
+   ─────────────
+   ┌─────────────────────────────────────────────────────────┐
+   │ Key Metrics Cards:                                      │
+   │ • Total Requests                                        │
+   │ • Average Response Time                                 │
+   │ • Success Rate                                          │
+   │ • Error Count                                           │
+   │                                                          │
+   │ Charts & Analytics:                                    │
+   │ • Request Volume Over Time (Line Chart)                 │
+   │ • Status Code Breakdown (Doughnut Chart)                │
+   │ • Response Time Distribution (Line Chart)               │
+   │ • Top 10 Endpoints (Bar Chart)                          │
+   └─────────────────────────────────────────────────────────┘
+
+2. ENDPOINTS PAGE
+   ──────────────
+   ┌─────────────────────────────────────────────────────────┐
+   │ Search: [Search by endpoint name...] [Clear]            │
+   │                                                          │
+   │ Recent Requests Table:                                 │
+   │ • Time | Endpoint | Status | Duration                  │
+   │                                                          │
+   │ Recent Exceptions Table:                               │
+   │ • Time | Exception Type | Count                        │
+   │                                                          │
+   │ Slowest Endpoints Table:                               │
+   │ • Endpoint | Avg Duration | Request Count              │
+   │                                                          │
+   │ Most Used Endpoints Table:                             │
+   │ • Endpoint | Request Count | Success Rate              │
+   └─────────────────────────────────────────────────────────┘
+
+3. LOGS PAGE
+   ──────────
+   ┌─────────────────────────────────────────────────────────┐
+   │ Filters:                                                │
+   │ [Last 1 Hour] [Last 6 Hours] [Last 24 Hours]          │
+   │ [Last 7 Days]                                          │
+   │                                                          │
+   │ Custom Range:                                          │
+   │ From: [Date/Time] To: [Date/Time] [Filter] [Reset]     │
+   │                                                          │
+   │ Request Logs Table:                                    │
+   │ • Timestamp | Endpoint | Method | Status | Duration    │
+   │   | Success                                            │
+   └─────────────────────────────────────────────────────────┘
+
+VISUAL ELEMENTS:
+────────────────
+• Metric cards with icons and color-coded backgrounds
+• Interactive Chart.js charts (hover, zoom capabilities)
+• Sortable data tables with hover effects
+• Status badges (color-coded: green for 200, yellow for 400, red for 500)
+• Loading spinners during data refresh
+• Error notifications with clear messages
+
+================================================================================
+8. FEATURES & FUNCTIONALITY
+================================================================================
+
+KEY FEATURES:
+─────────────
+
+1. REAL-TIME MONITORING
+   ────────────────────
+   • Auto-refresh every 5 minutes
+   • Manual refresh button
+   • Live data from Azure Application Insights
+   • Timestamp showing last update time
+
+2. COMPREHENSIVE METRICS
+   ──────────────────────
+   • Total requests count
+   • Average response time
+   • Success rate percentage
+   • Error count
+   • Request trends over time
+
+3. INTERACTIVE CHARTS
+   ──────────────────
+   • Request volume timeline
+   • Status code distribution
+   • Response time trends
+   • Top endpoints visualization
+
+4. DETAILED TABLES
+   ────────────────
+   • Recent requests with full details
+   • Recent exceptions with counts
+   • Slowest endpoints analysis
+   • Most used endpoints with success rates
+
+5. ADVANCED FILTERING
+   ───────────────────
+   • Endpoint name search (real-time)
+   • Time-based filtering (quick filters + custom range)
+   • Live updates (end time = current time)
+
+6. DEMO MODE
+   ──────────
+   • Activates when credentials not configured
+   • Shows sample data
+   • Demonstrates functionality
+   • Useful for demos and testing
+
+7. ERROR HANDLING
+   ───────────────
+   • Graceful error messages
+   • Network error detection
+   • API error notifications
+   • User-friendly error display
+
+8. RESPONSIVE DESIGN
+   ─────────────────
+   • Works on desktop, tablet, mobile
+   • Adaptive layout
+   • Touch-friendly interface
+
+================================================================================
+9. FILTERING & SEARCH CAPABILITIES
+================================================================================
+
+ENDPOINT SEARCH:
+───────────────
+┌─────────────────────────────────────────────────────────────┐
+│ Functionality:                                              │
+│ • Real-time search as you type                             │
+│ • Searches across all tables:                               │
+│   - Recent Requests                                         │
+│   - Recent Exceptions                                       │
+│   - Slowest Endpoints                                       │
+│   - Most Used Endpoints                                     │
+│ • Clear button to reset search                              │
+│ • Case-insensitive matching                                 │
+└─────────────────────────────────────────────────────────────┘
+
+TIME-BASED FILTERING (LOGS PAGE):
+──────────────────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ Quick Filters:                                              │
+│ • Last 1 Hour                                               │
+│ • Last 6 Hours                                              │
+│ • Last 24 Hours                                             │
+│ • Last 7 Days                                               │
+│                                                              │
+│ Custom Date/Time Range:                                     │
+│ • From: [Date/Time Picker]                                  │
+│ • To: [Date/Time Picker]                                   │
+│ • Filter button to apply                                    │
+│ • Reset button to clear                                     │
+│                                                              │
+│ Features:                                                   │
+│ • Live updates (end time = current time)                  │
+│ • Filter status display                                     │
+│ • Loading indicators during filter application             │
+└─────────────────────────────────────────────────────────────┘
+
+================================================================================
+10. DEMO MODE
+================================================================================
+
+PURPOSE:
+────────
+Demo mode allows the dashboard to function even when Application Insights 
+credentials are not configured, making it perfect for demonstrations and 
+testing.
+
+HOW IT WORKS:
+─────────────
+┌─────────────────────────────────────────────────────────────┐
+│ 1. Dashboard checks config.js for credentials              │
+│ 2. If missing or default values → Demo Mode activated       │
+│ 3. Generates realistic sample data                         │
+│ 4. Displays notification banner                            │
+│ 5. All features work with sample data                      │
+└─────────────────────────────────────────────────────────────┘
+
+DEMO DATA INCLUDES:
+───────────────────
+• Sample request counts
+• Simulated response times
+• Example endpoints
+• Mock exceptions
+• Realistic timestamps
+• Status code distributions
+
+BENEFITS:
+─────────
+• Perfect for presentations
+• No Azure setup required for demos
+• Shows all features working
+• Safe testing environment
+
+================================================================================
+11. DEPLOYMENT OPTIONS
+================================================================================
+
+OPTION 1: LOCAL FILE
+─────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ • Simply open dashboard.html in browser                    │
+│ • Works for personal use                                   │
+│ • No server required                                        │
+│ • Quick and easy                                            │
+└─────────────────────────────────────────────────────────────┘
+
+OPTION 2: AZURE BLOB STORAGE
+─────────────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ Steps:                                                      │
+│ 1. Create Storage Account in Azure                         │
+│ 2. Enable static website hosting                           │
+│ 3. Upload all dashboard files                              │
+│ 4. Access via static website URL                           │
+│                                                              │
+│ Benefits:                                                   │
+│ • Free/low-cost hosting                                    │
+│ • Azure integration                                        │
+│ • Scalable                                                  │
+└─────────────────────────────────────────────────────────────┘
+
+OPTION 3: WEB SERVER
+─────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ • Upload files to any web server:                          │
+│   - IIS (Windows)                                          │
+│   - Apache                                                  │
+│   - Nginx                                                   │
+│ • Access via domain/URL                                     │
+│ • Full control over hosting                                 │
+└─────────────────────────────────────────────────────────────┘
+
+OPTION 4: GITHUB PAGES
+──────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ • Push files to GitHub repository                          │
+│ • Enable GitHub Pages                                       │
+│ • Access via GitHub Pages URL                               │
+│ • Free hosting                                              │
+│ • Version control                                           │
+└─────────────────────────────────────────────────────────────┘
+
+================================================================================
+12. SECURITY CONSIDERATIONS
+================================================================================
+
+SECURITY FEATURES:
+──────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ ✅ API Key has read-only permissions                        │
+│ ✅ No sensitive data stored in frontend                     │
+│ ✅ Credentials in config.js (keep secure)                   │
+│ ✅ CORS handled by Application Insights API                │
+│ ✅ No data modification capabilities                        │
+└─────────────────────────────────────────────────────────────┘
+
+BEST PRACTICES:
+───────────────
+• Never commit config.js with real credentials to version control
+• Use environment variables for production (if possible)
+• Keep API Key secure and rotate if needed
+• Consider adding authentication to dashboard for production
+• Use HTTPS for deployment
+
+SECURITY NOTES:
+───────────────
+• API Key provides read-only access to telemetry data
+• No ability to modify or delete data
+• Dashboard itself has no authentication (add if needed)
+• All communication uses HTTPS
+
+================================================================================
+13. BENEFITS & USE CASES
+================================================================================
+
+BENEFITS FOR DEVELOPERS:
+────────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ • Quick performance insights                                │
+│ • Easy error identification                                 │
+│ • Endpoint performance analysis                             │
+│ • No Azure Portal navigation required                       │
+│ • Real-time monitoring                                      │
+└─────────────────────────────────────────────────────────────┘
+
+BENEFITS FOR STAKEHOLDERS:
+──────────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ • Clear visualizations                                     │
+│ • Easy to understand metrics                                │
+│ • Professional presentation                                 │
+│ • Real-time monitoring                                      │
+│ • No technical knowledge required                           │
+└─────────────────────────────────────────────────────────────┘
+
+BENEFITS FOR OPERATIONS:
+────────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ • Proactive issue detection                                 │
+│ • Performance trend analysis                                │
+│ • Resource optimization insights                            │
+│ • Historical data analysis                                  │
+│ • SLA monitoring                                            │
+└─────────────────────────────────────────────────────────────┘
+
+USE CASES:
+──────────
+
+1. PERFORMANCE MONITORING
+   ───────────────────────
+   • Track response times
+   • Identify bottlenecks
+   • Monitor trends
+   • Capacity planning
+
+2. ERROR TRACKING
+   ───────────────
+   • Identify exceptions
+   • Monitor error rates
+   • Track error trends
+   • Debug issues
+
+3. USAGE ANALYTICS
+   ────────────────
+   • Understand endpoint popularity
+   • Track usage patterns
+   • Identify most used endpoints
+   • Analyze user behavior
+
+4. CAPACITY PLANNING
+   ──────────────────
+   • Analyze request patterns
+   • Predict load
+   • Resource optimization
+   • Scaling decisions
+
+5. SLA MONITORING
+   ───────────────
+   • Track success rates
+   • Monitor uptime
+   • Performance metrics
+   • Compliance tracking
+
+6. TROUBLESHOOTING
+   ────────────────
+   • Detailed logs
+   • Error analysis
+   • Performance investigation
+   • Root cause analysis
+
+================================================================================
+14. PERFORMANCE & SPEED
+================================================================================
+
+WHY KQL IS FAST:
+───────────────
+┌─────────────────────────────────────────────────────────────┐
+│ 1. Columnar Storage                                        │
+│    • Data stored in columns (not rows)                     │
+│    • Faster aggregations                                   │
+│    • Better compression                                    │
+│                                                              │
+│ 2. Parallel Processing                                     │
+│    • Queries split across multiple nodes                   │
+│    • Processes in parallel                                 │
+│    • Combines results efficiently                           │
+│                                                              │
+│ 3. Time-Series Optimization                                │
+│    • Built-in time functions are optimized                  │
+│    • bin(timestamp, 1h) - very fast                        │
+│    • Time-based indexing                                    │
+│                                                              │
+│ 4. Smart Query Execution                                   │
+│    • Automatic query optimization                           │
+│    • Uses indexes automatically                             │
+│    • Caches frequently used queries                         │
+└─────────────────────────────────────────────────────────────┘
+
+PERFORMANCE METRICS:
+────────────────────
+┌─────────────────────────────────────────────────────────────┐
+│ OPERATION                    │ TYPICAL TIME                  │
+├─────────────────────────────────────────────────────────────┤
+│ Count millions of logs       │ 1-3 seconds                   │
+│ Time-based grouping          │ 2-4 seconds                  │
+│ Aggregations                 │ 2-5 seconds                   │
+│ Top 10 endpoints             │ 2-4 seconds                  │
+│ Complex queries               │ 3-8 seconds                  │
+└─────────────────────────────────────────────────────────────┘
+
+BEST PRACTICES FOR FAST QUERIES:
+─────────────────────────────────
+1. Always filter by time first
+2. Use specific time ranges
+3. Limit results early
+4. Use summarize efficiently
+5. Avoid unnecessary joins
+
+================================================================================
+15. PRESENTATION TIPS
+================================================================================
+
+DEMO FLOW:
+──────────
+┌─────────────────────────────────────────────────────────────┐
+│ 1. Start with Overview                                      │
+│    • Show key metrics cards                                 │
+│    • Explain what each metric means                         │
+│    • Highlight real-time data                              │
+│                                                              │
+│ 2. Navigate to Endpoints                                    │
+│    • Show search functionality                             │
+│    • Demonstrate table filtering                           │
+│    • Explain endpoint analysis                              │
+│                                                              │
+│ 3. Show Logs Page                                           │
+│    • Apply time filters                                     │
+│    • Show custom date range                                │
+│    • Demonstrate live updates                              │
+│                                                              │
+│ 4. Demonstrate Refresh                                      │
+│    • Show auto-refresh (wait for timer)                    │
+│    • Use manual refresh button                             │
+│    • Show loading indicators                               │
+│                                                              │
+│ 5. Highlight Responsiveness                                 │
+│    • Resize browser window                                  │
+│    • Show mobile view (if possible)                        │
+│    • Demonstrate touch interactions                         │
+└─────────────────────────────────────────────────────────────┘
+
+KEY POINTS TO EMPHASIZE:
+────────────────────────
+• Real-time data from Azure Application Insights
+• No backend server required
+• Easy deployment
+• Professional UI
+• Comprehensive monitoring
+• Cost-effective solution
+• Fast query performance (1-5 seconds)
+• KQL optimization for log analytics
+
+VISUAL DEMONSTRATION:
+─────────────────────
+• Show live dashboard with real data
+• Demonstrate filtering and search
+• Highlight interactive charts
+• Show error handling
+• Demonstrate responsive design
+
+================================================================================
+16. Q&A PREPARATION
+================================================================================
+
+COMMON QUESTIONS & ANSWERS:
+───────────────────────────
+
+Q: How is data updated?
+───────────────────────
+A: Data is automatically refreshed every 5 minutes. Users can also 
+   manually refresh using the refresh button in the sidebar. All queries 
+   are executed in parallel for efficiency.
+
+Q: Is it secure?
+────────────────
+A: Yes. The API Key has read-only permissions, meaning it can only read 
+   telemetry data, not modify or delete anything. No sensitive data is 
+   stored in the frontend. For production, you can add authentication 
+   to the dashboard itself.
+
+Q: Can it be customized?
+─────────────────────────
+A: Absolutely! You can modify KQL queries to fetch different data, change 
+   styling with Tailwind CSS, add new features, modify charts, and extend 
+   functionality as needed.
+
+Q: What if the API is down?
+───────────────────────────
+A: The dashboard displays clear error messages. It handles network errors, 
+   API errors, and provides user-friendly notifications. The dashboard 
+   itself continues to function, just without new data.
+
+Q: Can multiple APIs be monitored?
+───────────────────────────────────
+A: Currently, the dashboard monitors one Application Insights resource. 
+   However, it can be extended to support multiple APIs by modifying the 
+   configuration and query logic.
+
+Q: How fast are the queries?
+─────────────────────────────
+A: Queries typically complete in 1-5 seconds, even with millions of records. 
+   This is due to KQL's columnar storage, parallel processing, and Azure's 
+   high-performance infrastructure.
+
+Q: Do I need Azure Portal access?
+─────────────────────────────────
+A: No! That's one of the key benefits. The dashboard provides all the 
+   monitoring capabilities you need without navigating the Azure Portal.
+
+Q: What technologies are used?
+──────────────────────────────
+A: Pure frontend solution using HTML5, Tailwind CSS, JavaScript, Chart.js, 
+   and Moment.js. It integrates with Azure Application Insights via REST API 
+   using KQL queries.
+
+Q: How do I deploy it?
+──────────────────────
+A: Multiple options: local file, Azure Blob Storage, web server (IIS/Apache/
+   Nginx), or GitHub Pages. All options are straightforward and well-documented.
+
+Q: What's the cost?
+───────────────────
+A: The dashboard itself is free (just static files). You only pay for Azure 
+   Application Insights data ingestion, which is typically very affordable 
+   for most use cases.
+
+================================================================================
+                    END OF PRESENTATION GUIDE
+================================================================================
+
+ADDITIONAL NOTES:
+─────────────────
+• Practice the demo flow before the presentation
+• Have backup screenshots in case of connectivity issues
+• Prepare answers for technical questions
+• Time your presentation (aim for 15-20 minutes)
+• Leave time for Q&A
+
+GOOD LUCK WITH YOUR PRESENTATION!
+================================================================================
+

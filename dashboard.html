@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Insights Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-56 bg-white shadow-sm border-r border-gray-200 flex flex-col">
+            <!-- Logo and Title -->
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center gap-2">
+                    <img src="logo.png" alt="ezofis Logo" class="h-6 w-auto">
+                    <h1 class="text-base font-semibold text-gray-800">API MONITORING</h1>
+                </div>
+            </div>
+            
+            <!-- Mode Selector -->
+            <div class="p-3 border-b border-gray-200">
+                <label class="block text-xs font-semibold text-gray-700 mb-2">Data Source</label>
+                <select id="dataSourceMode" class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="appinsights">Application Insights</option>
+                    <option value="onpremise">On-Premise</option>
+                </select>
+                
+                <!-- Application Insights Environment Selector (shown only for Application Insights mode) -->
+                <div id="appInsightsEnvironmentContainer" class="mt-2">
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Environment</label>
+                    <select id="appInsightsEnvironment" class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="trial">Trial</option>
+                        <option value="live">Live</option>
+                    </select>
+                    <div id="environmentInfo" class="mt-1 text-xs text-gray-500">
+                        <span id="environmentName" class="font-medium"></span>
+                    </div>
+                </div>
+                
+                <!-- Customer Name Input (shown only for On-Premise) -->
+                <div id="customerNameContainer" class="mt-2 hidden">
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Customer Name</label>
+                    <input type="text" id="customerName" placeholder="e.g., gibca" class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <button id="connectOnPremise" class="w-full mt-2 px-2 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg text-xs transition-colors flex items-center justify-center gap-1">
+                        <i class="fas fa-plug text-xs"></i>
+                        <span class="text-xs">Connect</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tenant Filter -->
+            <div class="p-3 border-b border-gray-200">
+                <label class="block text-xs font-semibold text-gray-700 mb-2">Filter by Tenant</label>
+                <select id="tenantFilter" class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="">All Tenants</option>
+                </select>
+                <div id="selectedTenantInfo" class="mt-2 text-xs text-gray-600 hidden">
+                    <div class="bg-gray-50 p-2 rounded">
+                        <div class="font-semibold" id="selectedTenantName"></div>
+                        <div class="text-gray-500" id="selectedTenantEmail"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 p-3">
+                <ul class="space-y-1">
+                    <li>
+                        <button onclick="showPage('dashboard')" id="nav-dashboard" class="nav-item w-full text-left px-3 py-2 rounded-lg bg-purple-100 text-purple-700 font-medium flex items-center gap-2 hover:bg-purple-200 transition-colors text-sm">
+                            <i class="fas fa-chart-line text-xs"></i>
+                            <span>Overview</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showPage('datatables')" id="nav-datatables" class="nav-item w-full text-left px-3 py-2 rounded-lg text-gray-700 flex items-center gap-2 hover:bg-gray-100 transition-colors text-sm">
+                            <i class="fas fa-table text-xs"></i>
+                            <span>Endpoints</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showPage('logs')" id="nav-logs" class="nav-item w-full text-left px-3 py-2 rounded-lg text-gray-700 flex items-center gap-2 hover:bg-gray-100 transition-colors text-sm">
+                            <i class="fas fa-list-alt text-xs"></i>
+                            <span>Logs</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Footer -->
+            <div class="p-3 border-t border-gray-200">
+                <div class="text-xs text-gray-500 text-center">
+                    <div class="flex items-center justify-center gap-1 mb-2 text-xs">
+                        <i class="fas fa-clock text-xs"></i>
+                        <span id="sidebarLastUpdated" class="text-xs">Never</span>
+                    </div>
+                    <button id="sidebarRefreshBtn" class="w-full px-2 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg text-xs transition-colors flex items-center justify-center gap-1">
+                        <i class="fas fa-sync-alt text-xs"></i>
+                        <span class="text-xs">Refresh</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <div class="flex-1 ml-56 overflow-y-auto p-5 min-h-screen">
+            <div class="container mx-auto max-w-7xl">
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="fixed inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center z-50 hidden">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-600"></div>
+            <p class="mt-4 text-purple-600 text-lg font-semibold">Loading data from Application Insights...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded hidden" role="alert">
+            <div class="flex items-center justify-between">
+                <div>
+                    <strong class="font-bold">Error: </strong>
+                    <span id="errorText"></span>
+                </div>
+                <button id="closeError" class="text-red-700 hover:text-red-900">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Page (Default) -->
+        <div id="page-dashboard" class="page-content">
+        <!-- Key Metrics Cards -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">Key Metrics (Last 24 Hours)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="metric-card bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow duration-300 border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-exchange-alt text-purple-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 id="totalRequests" class="text-xl font-semibold text-gray-800">-</h3>
+                            <p class="text-gray-500 text-xs mt-1">Total Requests</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow duration-300 border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="bg-cyan-100 w-12 h-12 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-tachometer-alt text-cyan-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 id="avgResponseTime" class="text-xl font-semibold text-gray-800">-</h3>
+                            <p class="text-gray-500 text-xs mt-1">Avg Response Time</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow duration-300 border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-check-circle text-blue-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 id="successRate" class="text-xl font-semibold text-gray-800">-</h3>
+                            <p class="text-gray-500 text-xs mt-1">Success Rate</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow duration-300 border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="bg-red-100 w-12 h-12 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 id="errorCount" class="text-xl font-semibold text-gray-800">-</h3>
+                            <p class="text-gray-500 text-xs mt-1">Error Count</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">Charts & Analytics</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Request Volume Over Time -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                    <h3 class="text-base font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Request Volume Over Time</h3>
+                    <canvas id="requestVolumeChart" class="max-h-64"></canvas>
+                </div>
+                
+                <!-- Status Code Breakdown -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                    <h3 class="text-base font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Status Code Breakdown</h3>
+                    <div class="flex items-center justify-center gap-6">
+                        <div class="flex-shrink-0">
+                            <canvas id="statusCodeChart" class="max-h-48 w-48"></canvas>
+                        </div>
+                        <div id="statusCodeList" class="flex-1 space-y-2">
+                            <!-- Status code list will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Response Time Distribution -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                    <h3 class="text-base font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Response Time Distribution</h3>
+                    <canvas id="responseTimeChart" class="max-h-64"></canvas>
+                </div>
+                
+                <!-- Top Endpoints -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                    <h3 class="text-base font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Top 10 Endpoints by Request Count</h3>
+                    <canvas id="topEndpointsChart" class="max-h-64"></canvas>
+                </div>
+            </div>
+        </section>
+        </div>
+
+        <!-- Data Tables Page -->
+        <div id="page-datatables" class="page-content hidden">
+        <!-- Tables Section -->
+        <section class="mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl font-semibold text-gray-700">Endpoints</h2>
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-search text-gray-400"></i>
+                    <input type="text" id="endpointSearch" placeholder="Search by endpoint name..." class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 w-64">
+                    <button onclick="clearEndpointSearch()" class="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                        Clear
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Recent Requests -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                    <h3 class="text-base font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Recent Requests</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Time</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Endpoint</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentRequestsTable" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Recent Exceptions -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                    <h3 class="text-base font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Recent Exceptions</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Time</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Endpoint</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status Code</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Error Code</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Error Message</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentExceptionsTable" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="3" class="px-4 py-8 text-center text-gray-500">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Slowest Endpoints -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                    <h3 class="text-base font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Slowest Endpoints</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Endpoint</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Avg Duration (ms)</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Request Count</th>
+                                </tr>
+                            </thead>
+                            <tbody id="slowestEndpointsTable" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="3" class="px-4 py-8 text-center text-gray-500">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Most Used Endpoints -->
+                <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                    <h3 class="text-base font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Most Used Endpoints</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Endpoint</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Request Count</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Success Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mostUsedEndpointsTable" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="3" class="px-4 py-8 text-center text-gray-500">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        </div>
+
+        <!-- Logs Page -->
+        <div id="page-logs" class="page-content hidden">
+        <!-- Logs Section -->
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">Request Logs</h2>
+            <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                <div class="mb-4">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-3">
+                        <h3 class="text-base font-semibold text-gray-700">All Requests</h3>
+                        <div class="text-xs text-gray-500">
+                            <span id="logsCount">0</span> requests
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Section -->
+                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                        <div class="flex flex-col md:flex-row gap-3 items-end">
+                            <!-- Quick Filter Buttons -->
+                            <div class="flex gap-2 flex-wrap">
+                                <button onclick="setQuickFilter('1h')" class="quick-filter-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">Last 1 Hour</button>
+                                <button onclick="setQuickFilter('6h')" class="quick-filter-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">Last 6 Hours</button>
+                                <button onclick="setQuickFilter('24h')" class="quick-filter-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">Last 24 Hours</button>
+                                <button onclick="setQuickFilter('7d')" class="quick-filter-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">Last 7 Days</button>
+                            </div>
+                            
+                            <!-- Custom Date/Time Range -->
+                            <div class="flex gap-2 items-center flex-wrap">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-xs text-gray-600">From:</label>
+                                    <input type="datetime-local" id="filterStartTime" class="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label class="text-xs text-gray-600">To:</label>
+                                    <input type="datetime-local" id="filterEndTime" class="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                </div>
+                                <button onclick="applyLogsFilter()" class="px-4 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors flex items-center gap-1">
+                                    <i class="fas fa-filter"></i>
+                                    Filter
+                                </button>
+                                <button onclick="resetLogsFilter()" class="px-4 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">
+                                    Reset
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-500" id="filterStatus">
+                            Showing: Last 24 Hours
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Timestamp</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Endpoint</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Method</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Duration</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Success</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestLogsTable" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="6" class="px-4 py-8 text-center text-gray-500">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Popup for Request Details -->
+    <div id="requestDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center" onclick="if(event.target === this) closeRequestModal()">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-gray-800">Request Details</h2>
+                <button onclick="closeRequestModal()" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            <div id="requestDetailContent" class="p-6">
+                <div class="flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-purple-600"></div>
+                    <span class="ml-3 text-gray-600">Loading details...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <!-- Configuration -->
+    <script src="config.js"></script>
+    <!-- Dashboard Logic -->
+    <script src="dashboard.js"></script>
+</body>
+</html>

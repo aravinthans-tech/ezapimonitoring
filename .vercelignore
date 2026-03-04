@@ -1,0 +1,17 @@
+# Ignore temporary files
+~$*
+*.pptx
+*.bat
+*.py
+*.txt
+*.md
+!README.md
+
+# Ignore presentation files
+API_Monitoring_Presentation*
+PRESENTATION_INSTRUCTIONS.md
+START_ELASTICSEARCH.bat
+start-server.bat
+generate_presentation.py
+create_presentation.html
+
