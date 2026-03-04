@@ -251,3 +251,4 @@ loadSavedConfig();
 fs.writeFileSync(path.join(__dirname, 'config.js'), configJs, 'utf8');
 console.log('✅ config.js generated successfully from environment variables');
 
+

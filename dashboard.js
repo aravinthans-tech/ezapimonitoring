@@ -373,9 +373,46 @@ function hideLoading() {
     document.getElementById('loadingIndicator').classList.add('hidden');
 }
 
-// Show error message
+// Show error message with formatted endpoint and status code
 function showError(message) {
-    document.getElementById('errorText').textContent = message;
+    const errorTextElement = document.getElementById('errorText');
+    
+    // Helper function to escape HTML (if escapeHtml is not yet defined)
+    const escapeHtmlLocal = (text) => {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    };
+    
+    // Check if message contains endpoint and status code
+    if (message.includes('Endpoint:') && message.includes('Status Code:')) {
+        // Parse and format the error message nicely
+        const endpointMatch = message.match(/Endpoint: ([^|]+)/);
+        const statusMatch = message.match(/Status Code: (\d+)/);
+        const errorParts = message.split('|');
+        const errorDetail = errorParts.length > 2 ? errorParts.slice(2).join('|').trim() : '';
+        
+        if (endpointMatch && statusMatch) {
+            const endpoint = endpointMatch[1].trim();
+            const statusCode = statusMatch[1].trim();
+            const escapeFn = typeof escapeHtml !== 'undefined' ? escapeHtml : escapeHtmlLocal;
+            
+            const formattedMessage = `
+                <div class="space-y-2">
+                    <div><strong>Endpoint:</strong> <code class="bg-red-50 px-2 py-1 rounded text-sm font-mono">${escapeFn(endpoint)}</code></div>
+                    <div><strong>Status Code:</strong> <span class="bg-red-200 px-2 py-1 rounded font-semibold">${statusCode}</span></div>
+                    ${errorDetail ? `<div class="mt-2"><strong>Error Details:</strong> <span class="text-sm">${escapeFn(errorDetail)}</span></div>` : ''}
+                </div>
+            `;
+            errorTextElement.innerHTML = formattedMessage;
+        } else {
+            errorTextElement.textContent = message;
+        }
+    } else {
+        errorTextElement.textContent = message;
+    }
+    
     document.getElementById('errorMessage').classList.remove('hidden');
     hideLoading();
 }
@@ -544,7 +581,9 @@ async function executeAppInsightsQuery(query) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('API Error Response:', errorText);
-            throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+            // Include endpoint and status code in error message
+            const endpoint = url.split('?')[0]; // Get base URL without query params
+            throw new Error(`Endpoint: ${endpoint} | Status Code: ${response.status} | ${errorText || response.statusText}`);
         }
 
         const data = await response.json();
@@ -755,7 +794,7 @@ async function executeOnPremiseQuery(queryType, params = {}) {
                 sort: [
                     { "@timestamp": { order: "desc" } }
                 ],
-                _source: ["@timestamp", "method", "path", "statusCode", "errorMessage"]
+                _source: ["@timestamp", "method", "path", "statusCode", "errorMessage", "errorCode"]
             };
         } else {
             // Default to stats
@@ -908,9 +947,10 @@ function transformElasticsearchExceptionsResponse(esResponse) {
             tables: [{
                 columns: [
                     { name: 'timestamp', type: 'datetime' },
-                    { name: 'problemId', type: 'string' },
-                    { name: 'type', type: 'string' },
-                    { name: 'outerMessage', type: 'string' }
+                    { name: 'endpoint', type: 'string' },
+                    { name: 'statusCode', type: 'string' },
+                    { name: 'errorMessage', type: 'string' },
+                    { name: 'errorCode', type: 'string' }
                 ],
                 rows: []
             }]
@@ -919,11 +959,18 @@ function transformElasticsearchExceptionsResponse(esResponse) {
     
     const rows = hits.map(hit => {
         const source = hit._source;
+        // Get the actual error message from Elasticsearch source
+        const errorMessage = source.errorMessage || source.error_message || '';
+        const errorCode = source.errorCode || source.error_code || source.statusCode || 'N/A';
+        const endpoint = source.path || source.endpoint || 'N/A';
+        const statusCode = source.statusCode || 'N/A';
+        
         return [
             source['@timestamp'] || source.timestamp || new Date().toISOString(),
-            `problem-${source.statusCode || 'error'}`,
-            `HTTP ${source.statusCode || 'Error'}`,
-            `${source.method || 'GET'} ${source.path || ''} - Status ${source.statusCode || 'Error'}`
+            endpoint,
+            String(statusCode),
+            errorMessage, // Use the actual errorMessage from Elasticsearch
+            String(errorCode)
         ];
     });
     
@@ -931,9 +978,10 @@ function transformElasticsearchExceptionsResponse(esResponse) {
         tables: [{
             columns: [
                 { name: 'timestamp', type: 'datetime' },
-                { name: 'problemId', type: 'string' },
-                { name: 'type', type: 'string' },
-                { name: 'outerMessage', type: 'string' }
+                { name: 'endpoint', type: 'string' },
+                { name: 'statusCode', type: 'string' },
+                { name: 'errorMessage', type: 'string' },
+                { name: 'errorCode', type: 'string' }
             ],
             rows: rows
         }]
@@ -1793,11 +1841,19 @@ function updateRecentExceptionsTable(data) {
 
     // Store full data for modal access
     recentExceptionsFullData = rows.map(row => {
+        // Handle error message - convert to string and handle null/undefined/empty
+        let errorMessage = row[3];
+        if (!errorMessage || (typeof errorMessage === 'string' && errorMessage.trim() === '')) {
+            errorMessage = 'N/A';
+        } else {
+            errorMessage = String(errorMessage);
+        }
+        
         return {
             timestamp: row[0],
             endpoint: row[1] || 'N/A',
             statusCode: row[2] || 'N/A',
-            errorMessage: row[3] || 'N/A',
+            errorMessage: errorMessage,
             errorCode: row[4] || row[2] || 'N/A'
         };
     });
@@ -1807,20 +1863,33 @@ function updateRecentExceptionsTable(data) {
         const timestamp = moment(row[0]).format('MMM DD, HH:mm');
         const endpoint = row[1] || 'N/A';
         const statusCode = row[2] || 'N/A';
-        const errorMessage = row[3] || 'N/A';
+        
+        // Handle error message - convert to string and handle null/undefined/empty
+        let errorMessage = row[3];
+        if (!errorMessage || (typeof errorMessage === 'string' && errorMessage.trim() === '')) {
+            errorMessage = 'N/A';
+        } else {
+            errorMessage = String(errorMessage);
+        }
+        
         const errorCode = row[4] || statusCode; // Fallback to status code if error code not available
         
         const statusClass = getStatusClass(statusCode);
+        
+        // Escape HTML for all text fields to prevent XSS and display issues
+        const escapedEndpoint = escapeHtml(truncateText(endpoint, 50));
+        const escapedErrorCode = escapeHtml(truncateText(String(errorCode), 30));
+        const escapedErrorMessage = escapeHtml(truncateText(String(errorMessage), 100));
         
         return `
             <tr class="hover:bg-gray-50 cursor-pointer transition-colors" 
                 onclick="showExceptionDetails(${index})"
                 title="Click to view full error message">
                 <td class="px-4 py-3 text-sm text-gray-700">${timestamp}</td>
-                <td class="px-4 py-3 text-sm text-gray-900">${truncateText(endpoint, 50)}</td>
-                <td class="px-4 py-3 text-sm"><span class="status-badge ${statusClass}">${statusCode}</span></td>
-                <td class="px-4 py-3 text-sm text-gray-700">${truncateText(errorCode, 30)}</td>
-                <td class="px-4 py-3 text-sm text-red-600">${truncateText(errorMessage, 100)}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">${escapedEndpoint}</td>
+                <td class="px-4 py-3 text-sm"><span class="status-badge ${statusClass}">${escapeHtml(String(statusCode))}</span></td>
+                <td class="px-4 py-3 text-sm text-gray-700">${escapedErrorCode}</td>
+                <td class="px-4 py-3 text-sm text-red-600">${escapedErrorMessage}</td>
             </tr>
         `;
     }).join('');

@@ -87,3 +87,4 @@ After rotating the key, verify:
 
 **Remember**: Even if you clean Git history, if the repository was public, the key may have been indexed by search engines or cached. Always rotate exposed keys immediately.
 
+
