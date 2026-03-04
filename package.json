@@ -6,7 +6,7 @@
     "node": ">=18.x"
   },
   "scripts": {
-    "build": "node build-config.js"
+    "build": "node build-config.js && echo 'Build completed'"
   },
   "keywords": [
     "api-monitoring",
