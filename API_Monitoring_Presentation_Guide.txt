@@ -214,7 +214,7 @@ A. CONFIGURATION (config.js)
 ┌─────────────────────────────────────────────────────────────┐
 │ const APP_INSIGHTS_CONFIG = {                              │
 │     applicationId: '7c0154d5-8cec-4d11-b94d-bb10295b9436',│
-│     apiKey: 'su40571zh7m25yt2exnri8tf6zzpu2rutoxbaasy',    │
+│     apiKey: 'YOUR_API_KEY_HERE',    │
 │     queryApiUrl: 'https://api.applicationinsights.io/...', │
 │     refreshInterval: 300000  // 5 minutes                 │
 │ };                                                          │

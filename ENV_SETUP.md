@@ -14,7 +14,7 @@ Add these environment variables in your Vercel project settings:
 | Variable Name | Value | Environments |
 |--------------|-------|--------------|
 | `TRIAL_APP_INSIGHTS_APP_ID` | `7c0154d5-8cec-4d11-b94d-bb10295b9436` | Production, Preview, Development |
-| `TRIAL_APP_INSIGHTS_API_KEY` | `su40571zh7m25yt2exnri8tf6zzpu2rutoxbaasy` | Production, Preview, Development |
+| `TRIAL_APP_INSIGHTS_API_KEY` | `YOUR_TRIAL_API_KEY` | Production, Preview, Development |
 | `LIVE_APP_INSIGHTS_APP_ID` | `YOUR_LIVE_APPLICATION_ID` | Production, Preview, Development |
 | `LIVE_APP_INSIGHTS_API_KEY` | `YOUR_LIVE_API_KEY` | Production, Preview, Development |
 | `APP_INSIGHTS_ENVIRONMENT` | `trial` | Production, Preview, Development |
@@ -31,7 +31,7 @@ Create a `.env.local` file in your project root (this file is already in `.gitig
 ```bash
 # Application Insights - Trial Environment
 TRIAL_APP_INSIGHTS_APP_ID=7c0154d5-8cec-4d11-b94d-bb10295b9436
-TRIAL_APP_INSIGHTS_API_KEY=su40571zh7m25yt2exnri8tf6zzpu2rutoxbaasy
+TRIAL_APP_INSIGHTS_API_KEY=YOUR_TRIAL_API_KEY
 
 # Application Insights - Live Environment
 LIVE_APP_INSIGHTS_APP_ID=YOUR_LIVE_APPLICATION_ID
